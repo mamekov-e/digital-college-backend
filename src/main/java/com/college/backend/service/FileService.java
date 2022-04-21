@@ -111,7 +111,7 @@ public class FileService {
         Long userId = Long.parseLong(id);
 
         FileModel fileModel = fileRepository.findByUserIdAndName(userId, filename)
-                .orElseThrow(() -> new FileNotFoundException("File " + filename + "not found for user id: " + userId));
+                .orElseThrow(() -> new FileNotFoundException("File " + filename + " not found for user id: " + userId));
 
         if (!ObjectUtils.isEmpty(fileModel)) {
             fileModel.setFileByte(decompressBytes(fileModel.getFileByte()));

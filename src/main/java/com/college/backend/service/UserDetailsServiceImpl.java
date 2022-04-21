@@ -32,8 +32,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return UserDetailsImpl.build(user);
     }
 
-    public User loadUserById(Long userId) {
-        return userRepository.findUserById(userId).
-                orElse(null);
+    public UserDetails loadUserById(Long userId) {
+        User user = userRepository.findUserById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User id not found" + userId));
+
+        return UserDetailsImpl.build(user);
     }
 }

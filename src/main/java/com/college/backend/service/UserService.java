@@ -2,11 +2,9 @@ package com.college.backend.service;
 
 import com.college.backend.dto.UserDto;
 import com.college.backend.exceptions.*;
-import com.college.backend.model.ERole;
-import com.college.backend.model.School;
-import com.college.backend.model.SchoolEducationPeriod;
-import com.college.backend.model.User;
+import com.college.backend.model.*;
 import com.college.backend.payload.request.SignupRequest;
+import com.college.backend.repository.RoleRepository;
 import com.college.backend.repository.SchoolEducationPeriodRepository;
 import com.college.backend.repository.SchoolRepository;
 import com.college.backend.repository.UserRepository;
@@ -16,10 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,15 +27,17 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
+    private final RoleRepository roleRepository;
     private final SchoolEducationPeriodRepository schoolEducationPeriodRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(UserRepository userRepository, SchoolRepository schoolRepository,
                        SchoolEducationPeriodRepository schoolEducationPeriodRepository,
-                       PasswordEncoder passwordEncoder) {
+                       RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
+        this.roleRepository = roleRepository;
         this.schoolEducationPeriodRepository = schoolEducationPeriodRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -58,7 +59,13 @@ public class UserService {
         user.setPhoneNumber(userSignUp.getPhoneNumber());
         user.setEmail(userSignUp.getEmail());
         user.setPassword(passwordEncoder.encode(userSignUp.getPassword()));
-        user.getRoles().add(ERole.ROLE_USER);
+
+        Set<Role> roleSet = new HashSet<>();
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new DataNotFoundException("Role " + ERole.ROLE_USER + " not found"));
+        roleSet.add(userRole);
+
+        user.setRoles(roleSet);
 
         LOG.info("User saved: {}", userSignUp.getEmail());
         return userRepository.save(user);
@@ -75,6 +82,9 @@ public class UserService {
         user.setIIN(userDto.getIIN());
         user.setDob(userDto.getDob());
 
+        // чтобы обновить данные пользователя при вводе школы
+        // имеется три поля идентифицирующие информацию о школе
+        // и если пользователь начал заполнять одно поле надо заполнить остальные также
         if (userDto.getSchoolName() != null && userDto.getSchoolState() != null
                 && userDto.getSchoolCity() != null) {
 
@@ -94,28 +104,63 @@ public class UserService {
 
             user.setSchool(school);
 
-            if (userDto.getStartDate() != null && userDto.getEndDate() != null) {
+            // кроме этого указывать даты начала и конца учеба надо обязательно
+            // если пользователь уже ввел данные школы
+            // при пропуске какого либо ввода вернется ошибка
+            if (userDto.getStartDate() != null || userDto.getEndDate() != null) {
+                if (userDto.getStartDate() == null) {
+                    throw new MissingNecessaryInput("Missing Input start date");
+                } else if (userDto.getEndDate() == null) {
+                    throw new MissingNecessaryInput("Missing Input end date");
+                }
+            } else if (userDto.getStartDate() != null && userDto.getEndDate() != null) {
+                // в случае если поля заполнены надо проверить
+                // добавлял ли уже эти данные пользователь
                 SchoolEducationPeriod schoolEducationPeriod = schoolEducationPeriodRepository
                         .findSchoolEducationPeriodByUserId(user).orElse(null);
 
-                if(!ObjectUtils.isEmpty(schoolEducationPeriod)) {
-                    schoolEducationPeriodRepository.delete(schoolEducationPeriod);
+                // если не добавлял вносим пользователя и школу в таблицу периода обучения
+                // иначе просто обновляем значения начала и конца обучения
+                if (schoolEducationPeriod == null) {
+                    SchoolEducationPeriod period = new SchoolEducationPeriod();
+                    period.setStartDate(userDto.getStartDate());
+                    period.setEndDate(userDto.getEndDate());
+                    period.setSchoolId(school);
+                    period.setUserId(user);
+                    user.setSchoolEducationPeriod(period);
+                    schoolEducationPeriodRepository.save(period);
+                } else {
+                    schoolEducationPeriodRepository.updatePeriodById(userDto.getStartDate(),
+                            userDto.getEndDate(), user);
                 }
-
-                SchoolEducationPeriod period = new SchoolEducationPeriod();
-                period.setStartDate(userDto.getStartDate());
-                period.setEndDate(userDto.getEndDate());
-                period.setSchoolId(school);
-                period.setUserId(user);
-
-                user.setSchoolEducationPeriod(period);
-
-                schoolEducationPeriodRepository.save(period);
             }
+
         } else {
-            if (userDto.getStartDate() != null && userDto.getEndDate() != null) {
-                throw new MissingNecessaryInput("You are not able to update date without school info");
+            // если не все поля школы были заполнены
+            // нужно проверить каждый ввод и вывести ошибку о том, какое поле осталось незаполненным
+            if (userDto.getSchoolName() != null
+                    || userDto.getSchoolCity() != null
+                    || userDto.getSchoolState() != null) {
+                if (userDto.getSchoolName() == null) {
+                    throw new MissingNecessaryInput("Missing Input school name");
+                } else if (userDto.getSchoolState() == null) {
+                    throw new MissingNecessaryInput("Missing Input school state");
+                } else if (userDto.getSchoolCity() == null) {
+                    throw new MissingNecessaryInput("Missing Input school city");
+                }
             }
+
+            // так и для ввода дат, необходимо проверить каждую введенную дату
+            // и если имеется пропущенное поле вывести ошибку
+            if (userDto.getStartDate() != null || userDto.getEndDate() != null) {
+                if (userDto.getStartDate() == null) {
+                    throw new MissingNecessaryInput("Missing Input start date");
+                } else if (userDto.getEndDate() == null) {
+                    throw new MissingNecessaryInput("Missing Input end date");
+                } else
+                    throw new MissingNecessaryInput("You need to specify school info first");
+            }
+
         }
 
         LOG.info("User info updated: {}", user.getEmail());
@@ -137,22 +182,31 @@ public class UserService {
     }
 
     public List<User> getAllUsersExceptAdmin() {
+        Role role = roleRepository.findByName(ERole.ROLE_USER)
+                .orElse(null);
+
         return userRepository.findAllByOrderByCreatedDateAsc().stream()
-                .filter((user) -> user.getRoles().contains(ERole.ROLE_USER)
+                .filter((user) -> user.getRoles().contains(role)
                         && user.getStatus().equals(SecurityConstants.DEFAULT_STATUS))
                 .collect(Collectors.toList());
     }
 
     public List<User> getAllUsersAccepted() {
+        Role role = roleRepository.findByName(ERole.ROLE_USER)
+                .orElse(null);
+
         return userRepository.findAllByOrderByCreatedDateAsc().stream()
-                .filter((user) -> user.getRoles().contains(ERole.ROLE_USER)
+                .filter((user) -> user.getRoles().contains(role)
                         && user.getStatus().equals(SecurityConstants.ACCEPTED_STATUS))
                 .collect(Collectors.toList());
     }
 
     public List<User> getAllUsersDeclined() {
+        Role role = roleRepository.findByName(ERole.ROLE_USER)
+                .orElse(null);
+
         return userRepository.findAllByOrderByCreatedDateAsc().stream()
-                .filter((user) -> user.getRoles().contains(ERole.ROLE_USER)
+                .filter((user) -> user.getRoles().contains(role)
                         && user.getStatus().equals(SecurityConstants.DECLINED_STATUS))
                 .collect(Collectors.toList());
     }
@@ -176,6 +230,7 @@ public class UserService {
     public boolean isEmailExist(String email) {
         return userRepository.existsUserByEmail(email);
     }
+
     public boolean isPhoneNumberExist(String phoneNumber) {
         return userRepository.existsUserByPhoneNumber(phoneNumber);
     }
@@ -183,9 +238,11 @@ public class UserService {
     public boolean isSchoolNameExist(String schoolName) {
         return schoolRepository.existsSchoolByName(schoolName);
     }
+
     public boolean isSchoolCityExist(String schoolCity) {
         return schoolRepository.existsSchoolByCity(schoolCity);
     }
+
     public boolean isSchoolStateExist(String schoolState) {
         return schoolRepository.existsSchoolByState(schoolState);
     }

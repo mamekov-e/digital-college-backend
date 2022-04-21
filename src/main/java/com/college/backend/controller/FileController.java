@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +34,7 @@ public class FileController {
     private FileService fileService;
 
     @PostMapping("/upload/{uploadType}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<MessageResponse> uploadFile(@RequestParam MultipartFile file,
                                                       @PathVariable("uploadType") String uploadType,
                                                       Principal principal) throws IOException {
@@ -42,6 +44,7 @@ public class FileController {
     }
 
     @GetMapping("/download/{filename}/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> downloadFile(@PathVariable("filename") String filename,
                                                  @PathVariable("userId") String userId) throws IOException {
 
@@ -57,12 +60,14 @@ public class FileController {
     }
 
     @GetMapping("/get-all-id-scans")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FileModel> getAllIdScans() {
         return fileService.getUserIdFiles();
     }
 
 
     @GetMapping("/get-all-attestation-scans")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FileModel> getAllAttestationScans() {
         return fileService.getUserAttestationFiles();
     }

@@ -4,6 +4,8 @@ package com.college.backend.model;
 import com.college.backend.security.SecurityConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +20,7 @@ import java.util.Set;
 
 @Data
 @Entity
-public class User implements UserDetails{
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -56,10 +58,11 @@ public class User implements UserDetails{
     @JoinColumn(name = "school_education_period_id")
     private SchoolEducationPeriod schoolEducationPeriod;
 
-    @ElementCollection(targetClass = ERole.class)
-    @CollectionTable(name = "user_role",
-        joinColumns = @JoinColumn(name = "user_id"))
-    private Set<ERole> roles = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(  name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     @JsonFormat(pattern = "yyyy-mm-dd HH:hh:ss")
     @Column(updatable = false)
@@ -70,50 +73,50 @@ public class User implements UserDetails{
         this.createdDate = LocalDateTime.now();
     }
 
-    public User() {
-    }
-
-    public User(Long id,
-                String email,
-                String password,
-                Collection<? extends GrantedAuthority> authorities) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.authorities = authorities;
-    }
-
-    @Transient
-    private Collection<? extends GrantedAuthority> authorities;
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+//    public User() {
+//    }
+//
+//    public User(Long id,
+//                String email,
+//                String password,
+//                Collection<? extends GrantedAuthority> authorities) {
+//        this.id = id;
+//        this.email = email;
+//        this.password = password;
+//        this.authorities = authorities;
+//    }
+//
+//    @Transient
+//    private Collection<? extends GrantedAuthority> authorities;
+//
+//    @Override
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    @Override
+//    public String getUsername() {
+//        return email;
+//    }
+//
+//    @Override
+//    public boolean isAccountNonExpired() {
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean isAccountNonLocked() {
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean isCredentialsNonExpired() {
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean isEnabled() {
+//        return true;
+//    }
 
 }
