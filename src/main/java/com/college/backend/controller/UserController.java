@@ -33,6 +33,7 @@ public class UserController {
     private ResponseErrorValidation responseErrorValidation;
 
     @GetMapping("/get-current")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<UserDto> getCurrentUserData(Principal principal) {
         User user = userService.getCurrentUser(principal);
         UserDto userDto = userFacade.userToUserDto(user);
