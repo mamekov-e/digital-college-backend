@@ -1,6 +1,5 @@
 package com.college.backend.repository;
 
-import com.college.backend.dto.UserDto;
 import com.college.backend.model.SchoolEducationPeriod;
 import com.college.backend.model.User;
 import org.springframework.data.jpa.repository.Modifying;

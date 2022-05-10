@@ -2,29 +2,21 @@ package com.college.backend.controller;
 
 import com.college.backend.model.FileModel;
 import com.college.backend.payload.response.MessageResponse;
-import com.college.backend.security.SecurityConstants;
 import com.college.backend.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.Principal;
 import java.util.List;
 
-import static java.nio.file.Paths.get;
 import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
 @RestController
@@ -46,7 +38,7 @@ public class FileController {
     @GetMapping("/download/{filename}/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> downloadFile(@PathVariable("filename") String filename,
-                                                 @PathVariable("userId") String userId) throws IOException {
+                                                 @PathVariable("userId") String userId) {
 
         FileModel file = fileService.downloadUserFile(userId, filename);
 

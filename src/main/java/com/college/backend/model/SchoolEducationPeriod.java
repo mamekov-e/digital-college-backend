@@ -2,8 +2,6 @@ package com.college.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.Date;

@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.NoSuchElementException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -25,8 +24,8 @@ import java.util.zip.Inflater;
 public class ImageService {
     public static final Logger LOG = LoggerFactory.getLogger(ImageService.class);
 
-    private UserRepository userRepository;
-    private ImageRepository imageRepository;
+    private final UserRepository userRepository;
+    private final ImageRepository imageRepository;
 
     @Autowired
     public ImageService(UserRepository userRepository, ImageRepository imageRepository) {
@@ -55,10 +54,9 @@ public class ImageService {
     public ImageModel getImageToUser(Principal principal) {
         User user = getUserByPrincipal(principal);
         Long userId = user.getId();
-        String email = user.getEmail();
 
         ImageModel imageModel = imageRepository.findByUserId(userId)
-                .orElseThrow( () -> new ImageNotFoundException("Image not found for user: " + email));
+                .orElse(null);
 
         if (!ObjectUtils.isEmpty(imageModel)) {
             imageModel.setImageByte(decompressBytes(imageModel.getImageByte()));

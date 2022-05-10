@@ -4,16 +4,10 @@ package com.college.backend.model;
 import com.college.backend.security.SecurityConstants;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -72,51 +66,4 @@ public class User {
     protected void onCreate() {
         this.createdDate = LocalDateTime.now();
     }
-
-//    public User() {
-//    }
-//
-//    public User(Long id,
-//                String email,
-//                String password,
-//                Collection<? extends GrantedAuthority> authorities) {
-//        this.id = id;
-//        this.email = email;
-//        this.password = password;
-//        this.authorities = authorities;
-//    }
-//
-//    @Transient
-//    private Collection<? extends GrantedAuthority> authorities;
-//
-//    @Override
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return email;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isAccountNonLocked() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isCredentialsNonExpired() {
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean isEnabled() {
-//        return true;
-//    }
-
 }

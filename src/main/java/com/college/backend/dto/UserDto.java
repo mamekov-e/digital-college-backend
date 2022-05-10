@@ -1,7 +1,5 @@
 package com.college.backend.dto;
 
-import com.college.backend.model.ERole;
-import com.college.backend.model.School;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 

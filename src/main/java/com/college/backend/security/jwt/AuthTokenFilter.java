@@ -1,20 +1,14 @@
 package com.college.backend.security.jwt;
 
 
-import com.college.backend.model.User;
 import com.college.backend.security.SecurityConstants;
-import com.college.backend.service.UserDetailsImpl;
 import com.college.backend.service.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,7 +18,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
     public static final Logger LOG = LoggerFactory.getLogger(JwtProvider.class);
@@ -33,11 +26,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private JwtProvider jwtProvider;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
         try {
             String jwt = getTokenFromRequest(request);
 

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
@@ -45,12 +46,12 @@ public class UserService {
     public User createUser(SignupRequest userSignUp) {
         User user = new User();
 
-        if (isEmailExist(userSignUp.getEmail())) {
-            throw new EmailAlreadyExist("This email " + userSignUp.getEmail() + " already exist");
+        if (isPhoneNumberExist(userSignUp.getPhoneNumber())) {
+            throw new PhoneNumberAlreadyExist("This phone number " + userSignUp.getPhoneNumber() + " already exist");
         }
 
-        if (isPhoneNumberExist(userSignUp.getPhoneNumber())) {
-            throw new EmailAlreadyExist("This phone number " + userSignUp.getPhoneNumber() + " already exist");
+        if (isEmailExist(userSignUp.getEmail())) {
+            throw new EmailAlreadyExist("This email " + userSignUp.getEmail() + " already exist");
         }
 
         user.setFirstName(userSignUp.getFirstName());
@@ -71,6 +72,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUser(UserDto userDto, Principal principal) {
         User user = getUserByPrincipal(principal);
 
@@ -113,7 +115,9 @@ public class UserService {
                 } else if (userDto.getEndDate() == null) {
                     throw new MissingNecessaryInput("Missing Input end date");
                 }
-            } else if (userDto.getStartDate() != null && userDto.getEndDate() != null) {
+            }
+
+            if (userDto.getStartDate() != null && userDto.getEndDate() != null) {
                 // в случае если поля заполнены надо проверить
                 // добавлял ли уже эти данные пользователь
                 SchoolEducationPeriod schoolEducationPeriod = schoolEducationPeriodRepository

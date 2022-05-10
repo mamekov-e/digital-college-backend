@@ -39,8 +39,8 @@ import static java.nio.file.Paths.get;
 public class FileService {
     public static final Logger LOG = LoggerFactory.getLogger(ImageService.class);
 
-    private UserRepository userRepository;
-    private FileRepository fileRepository;
+    private final UserRepository userRepository;
+    private final FileRepository fileRepository;
 
     @Autowired
     public FileService(UserRepository userRepository, FileRepository fileRepository) {
@@ -65,7 +65,7 @@ public class FileService {
 
         // также чтобы проверять по той же айди пользователя и типу нужно получить содержимое
         // второго файла с этим же айди пользователя, но с другим типом
-        String uploadAnotherType = "";
+        String uploadAnotherType;
 
         // если переданная переменная uploadType равна id-scan
         // то логично записать другой тип - attestation-scan
@@ -107,7 +107,7 @@ public class FileService {
         return fileRepository.save(fileModel);
     }
 
-    public FileModel downloadUserFile(String id, String filename) throws IOException {
+    public FileModel downloadUserFile(String id, String filename) {
         Long userId = Long.parseLong(id);
 
         FileModel fileModel = fileRepository.findByUserIdAndName(userId, filename)

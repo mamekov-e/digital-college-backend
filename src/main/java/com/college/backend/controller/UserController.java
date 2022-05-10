@@ -3,7 +3,6 @@ package com.college.backend.controller;
 import com.college.backend.dto.UserDto;
 import com.college.backend.facade.UserFacade;
 import com.college.backend.model.User;
-import com.college.backend.payload.response.MessageResponse;
 import com.college.backend.service.UserService;
 import com.college.backend.validations.ResponseErrorValidation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @CrossOrigin
 @RestController

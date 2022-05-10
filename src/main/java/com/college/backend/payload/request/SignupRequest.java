@@ -3,7 +3,6 @@ package com.college.backend.payload.request;
 import com.college.backend.annotations.ValidEmail;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
